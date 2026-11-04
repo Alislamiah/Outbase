@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#07111f">
+<title>Outbase — Projects</title>
+<link rel="icon" href="icon.png">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#07111f;color:#fff;font-family:Arial,sans-serif}
+header{height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:#091729;border-bottom:1px solid #1b3450;position:sticky;top:0;z-index:5}
+.brand{font-size:23px;font-weight:800}.brand span{color:#42aaff}
+.header-left{display:flex;align-items:center;gap:17px}
+.menu-btn{background:#102640;border:1px solid #294765;color:#fff;border-radius:9px;padding:10px 13px;cursor:pointer}
+.layout{display:flex;min-height:calc(100vh - 68px)}
+.sidebar{width:245px;padding:22px 15px;background:#091729;border-right:1px solid #1b3450;flex-shrink:0}
+.sidebar button{width:100%;padding:14px;text-align:left;color:#a9bfd5;background:transparent;border:0;border-radius:9px;margin-bottom:6px;cursor:pointer;font-size:14px}
+.sidebar button.active,.sidebar button:hover{background:#123152;color:#58b5ff}
+.sidebar .section{font-size:11px;color:#68829d;padding:15px 12px 8px;text-transform:uppercase;letter-spacing:1px}
+main{flex:1;min-width:0;padding:30px;max-width:1100px}
+h1{font-size:27px;margin:0 0 9px}
+.subtitle{color:#91a9c2;font-size:13px;line-height:1.7;margin:0 0 27px}
+.panel{background:linear-gradient(145deg,#10243b,#0b192b);border:1px solid #203d5c;border-radius:15px;padding:23px;margin-bottom:18px}
+.panel h2{font-size:17px;margin:0 0 16px}
+.info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.info{padding:16px;background:#091729;border:1px solid #203b57;border-radius:10px;min-width:0}
+.info small{display:block;color:#86a1bb;margin-bottom:9px}
+.info strong{font-size:14px;overflow-wrap:anywhere}
+.muted{color:#8ea6bf;font-size:13px;line-height:1.7}
+input{width:100%;padding:13px;background:#071321;border:1px solid #29415d;border-radius:9px;color:#fff;outline:none;margin:8px 0 15px}
+input:focus{border-color:#3caaff}
+button.primary{background:linear-gradient(100deg,#1675d1,#35aaff);color:#fff;border:0;padding:12px 18px;border-radius:9px;cursor:pointer;font-weight:bold}
+button.secondary{background:#142b44;color:#c5d9ed;border:1px solid #315273;padding:11px 15px;border-radius:9px;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+.project-row{width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;padding:14px;background:#091729;border:1px solid #203b57;border-radius:10px;color:#fff;margin:8px 0;cursor:pointer;gap:12px}
+.project-row small{display:block;color:#8ea6bf;margin-top:6px;overflow-wrap:anywhere}
+.project-row.selected{border-color:#329ff2;background:#102844}
+.project-row strong{font-size:14px}
+.code{white-space:pre-wrap;overflow-wrap:anywhere;background:#050d18;color:#9ed1ff;padding:16px;border-radius:10px;font:12px/1.7 monospace;border:1px solid #203b57}
+.copy{margin-top:9px}
+.provider{display:flex;align-items:center;gap:14px;padding:16px;background:#091729;border:1px solid #203b57;border-radius:12px;margin:12px 0}
+.provider img{width:42px;height:42px;object-fit:contain;border-radius:9px}
+.provider-info{flex:1;min-width:0}
+.provider-info strong{display:block;font-size:14px}
+.provider-info small{color:#8ea6bf;display:block;margin-top:5px}
+.switch{width:45px;height:25px;border-radius:20px;background:#34485d;position:relative;cursor:pointer;flex-shrink:0}
+.switch:after{content:"";position:absolute;width:19px;height:19px;top:3px;left:3px;border-radius:50%;background:#fff;transition:.2s}
+.switch.on{background:#1688e5}
+.switch.on:after{left:23px}
+.notice{border-left:3px solid #39aaff;background:#0b2037;padding:14px;color:#b9d5ee;font-size:13px;line-height:1.7;margin-bottom:18px}
+.empty{color:#8ea6bf;padding:25px;text-align:center;border:1px dashed #29435f;border-radius:12px}
+#menuOverlay{display:none}
+@media(max-width:700px){
+ .layout{display:block}
+ .sidebar{display:none;position:fixed;z-index:8;top:68px;bottom:0;left:0;width:260px;box-shadow:15px 0 40px #0008}
+ .sidebar.open{display:block}
+ main{padding:20px 15px}
+ .info-grid{grid-template-columns:1fr}
+ header{padding:0 15px}
+}
+</style>
+</head>
+<body>
+<header>
+ <div class="header-left">
+  <button class="menu-btn" id="menuBtn">☰</button>
+  <div class="brand">Out<span>base</span></div>
+ </div>
+ <button class="secondary" id="signoutBtn">Sign out</button>
+</header>
+
+<div class="layout">
+ <aside class="sidebar" id="sidebar">
+  <div class="section">Workspace</div>
+  <button class="active" data-page="overview">▦ &nbsp; Project Overview</button>
+  <button data-page="settings">⚙ &nbsp; Settings</button>
+  <button data-page="authentication">◈ &nbsp; Authentication</button>
+  <button data-page="users">♙ &nbsp; Users</button>
+  <div class="section">Your projects</div>
+  <div id="projectList"></div>
+ </aside>
+
+ <main id="content">
+  <div class="empty">Loading your projects...</div>
+ </main>
+</div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+import {getAuth,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+
+const firebaseConfig={
+ apiKey:"AIzaSyBrv1ky0Br5nLb68uvdXE3o6QdzTKpIU4g",
+ authDomain:"alislamiah-ai-34202.firebaseapp.com",
+ projectId:"alislamiah-ai-34202",
+ storageBucket:"alislamiah-ai-34202.firebasestorage.app",
+ messagingSenderId:"683051452829",
+ appId:"1:683051452829:web:e96e40422c7f31e563c774",
+ measurementId:"G-LFQLND010S"
+};
+
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+
+let currentUser=null;
+let projects=[];
+let activeProject=null;
+let currentPage="overview";
+
+const content=document.getElementById("content");
+const projectList=document.getElementById("projectList");
+
+function storageKey(){return "outbase_projects_"+currentUser.uid}
+function saveProjects(){localStorage.setItem(storageKey(),JSON.stringify(projects))}
+function escapeHTML(value){
+ return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+onAuthStateChanged(auth,user=>{
+ if(!user){location.href="signin.html";return}
+ currentUser=user;
+ loadProjects();
+});
+
+function loadProjects(){
+ try{projects=JSON.parse(localStorage.getItem(storageKey())||"[]")}
+ catch(e){projects=[]}
+ const activeId=localStorage.getItem("outbase_active_project_"+currentUser.uid);
+ activeProject=projects.find(p=>p.id===activeId)||projects[0]||null;
+ if(activeProject)localStorage.setItem("outbase_active_project_"+currentUser.uid,activeProject.id);
+ renderProjectList();
+ showPage("overview");
+}
+
+function renderProjectList(){
+ projectList.innerHTML="";
+ if(!projects.length){
+  projectList.innerHTML='<div class="muted" style="padding:12px">No projects yet.</div>';
+  return;
+ }
+ projects.forEach(project=>{
+  const button=document.createElement("button");
+  button.className="project-row"+(activeProject?.id===project.id?" selected":"");
+  button.innerHTML="<span><strong>"+escapeHTML(project.name)+"</strong><small>"+escapeHTML(project.id)+"</small></span>";
+  button.onclick=()=>{
+   activeProject=project;
+   localStorage.setItem("outbase_active_project_"+currentUser.uid,project.id);
+   renderProjectList();
+   showPage("overview");
+   closeMenu();
+  };
+  projectList.appendChild(button);
+ });
+}
+
+function setActiveNav(page){
+ document.querySelectorAll(".sidebar [data-page]").forEach(button=>{
+  button.classList.toggle("active",button.dataset.page===page);
+ });
+}
+
+function showPage(page){
+ currentPage=page;
+ setActiveNav(page);
+ if(!activeProject){
+  content.innerHTML='<h1>Project Overview</h1><p class="subtitle">Your Outbase workspace</p><div class="empty">You have no projects yet. <a href="index.html" style="color:#55b5ff">Create your first project</a>.</div>';
+  return;
+ }
+ if(page==="overview")renderOverview();
+ if(page==="settings")renderSettings();
+ if(page==="authentication")renderAuthentication();
+ if(page==="users")renderUsers();
+}
+
+document.querySelectorAll(".sidebar [data-page]").forEach(button=>{
+ button.onclick=()=>{showPage(button.dataset.page);closeMenu()};
+});
+
+function renderOverview(){
+ content.innerHTML=`
+ <h1>Project Overview</h1>
+ <p class="subtitle">Welcome to your project workspace. Manage your project from here.</p>
+ <div class="panel">
+  <h2>Project Information</h2>
+  <div class="info-grid">
+   <div class="info"><small>Project name</small><strong>${escapeHTML(activeProject.name)}</strong></div>
+   <div class="info"><small>Project ID</small><strong>${escapeHTML(activeProject.id)}</strong></div>
+   <div class="info"><small>Created at</small><strong>${new Date(activeProject.createdAt).toLocaleDateString()}</strong></div>
+   <div class="info"><small>Authentication</small><strong>${Object.values(activeProject.auth||{}).some(x=>x.enabled)?"Configured":"Not configured"}</strong></div>
+  </div>
+ </div>
+ <div class="panel">
+  <h2>Quick access</h2>
+  <p class="muted">Manage your project configuration, authentication providers and local user records.</p>
+  <button class="primary" id="goSettings">Project Settings</button>
+  <button class="secondary" id="goAuth" style="margin-left:7px">Authentication</button>
+ </div>`;
+ document.getElementById("goSettings").onclick=()=>showPage("settings");
+ document.getElementById("goAuth").onclick=()=>showPage("authentication");
+}
+
+function renderSettings(){
+ const scriptCode=`<!-- Outbase project configuration -->\n<script>\nwindow.OUTBASE_CONFIG = {\n  appId: "${activeProject.id}",\n  apiKey: "${activeProject.apiKey}"\n};\n<\/script>`;
+ const authCode=`// Authentication integration\n// Provider sign-in requires the Outbase authentication\n// service to be implemented and connected.\nconst outbaseAppId = "${activeProject.id}";\nconst authProvider = "alislamiah";`;
+ content.innerHTML=`
+ <h1>Settings</h1>
+ <p class="subtitle">Manage your project details and integration information.</p>
+ <div class="panel">
+  <h2>Project details</h2>
+  <label class="muted">Project name</label>
+  <input id="editName" maxlength="45" value="${escapeHTML(activeProject.name)}">
+  <label class="muted">Project ID</label>
+  <input value="${escapeHTML(activeProject.id)}" readonly>
+  <label class="muted">API Key</label>
+  <input value="${escapeHTML(activeProject.apiKey)}" readonly>
+  <button class="primary" id="saveName">Save changes</button>
+  <div class="muted" id="settingsMessage" style="margin-top:10px"></div>
+ </div>
+ <div class="panel">
+  <h2>Script codes</h2>
+  <p class="muted">Project configuration snippet. This identifies your project; it does not provide a hosted SDK or authentication endpoint.</p>
+  <div class="code" id="scriptCode"></div>
+  <button class="secondary copy" id="copyScript">Copy script code</button>
+ </div>
+ <div class="panel">
+  <h2>Authentication codes</h2>
+  <p class="muted">Project identifier for your authentication integration.</p>
+  <div class="code" id="authCode"></div>
+  <button class="secondary copy" id="copyAuth">Copy authentication code</button>
+ </div>`;
+ document.getElementById("scriptCode").textContent=scriptCode;
+ document.getElementById("authCode").textContent=authCode;
+ document.getElementById("saveName").onclick=()=>{
+  const name=document.getElementById("editName").value.trim();
+  if(name.length<2){document.getElementById("settingsMessage").textContent="Enter a valid project name.";return}
+  activeProject.name=name;
+  saveProjects();
+  renderProjectList();
+  document.getElementById("settingsMessage").textContent="Project name saved on this device.";
+ };
+ document.getElementById("copyScript").onclick=()=>copyText(scriptCode);
+ document.getElementById("copyAuth").onclick=()=>copyText(authCode);
+}
+
+function renderAuthentication(){
+ const auth=activeProject.auth||(activeProject.auth={});
+ if(!auth.alislamiah)auth.alislamiah={enabled:false,domain:""};
+ if(!auth.outhub)auth.outhub={enabled:false,domain:""};
+
+ content.innerHTML=`
+ <h1>Authentication</h1>
+ <p class="subtitle">Configure the identity providers available for your project.</p>
+ <div class="panel">
+  <h2>Authentication setup</h2>
+  <button class="primary" id="startAuthentication">Start Authentication</button>
+  <div id="authSetup" style="display:none;margin-top:22px">
+   <div class="notice"><strong>Information</strong><br>You must copy the script codes that we gave it to you.</div>
+   <div class="provider">
+    <img src="Alislamiah-AI.png" alt="Alislamiah AI">
+    <div class="provider-info"><strong>Alislamiah AI</strong><small>Alislamiah AI identity provider</small></div>
+    <button class="secondary" id="toggleAlislamiah">Configure</button>
+   </div>
+   <div id="alislamiahConfig" style="display:none;padding:10px 0 20px">
+    <label class="muted">Enter your webapp domain!</label>
+    <input id="alislamiahDomain" placeholder="https://example.com">
+    <button class="primary" id="saveAlislamiah">Enable</button>
+   </div>
+   <div class="provider">
+    <img src="Outhub.png" alt="Outhub">
+    <div class="provider-info"><strong>Outhub</strong><small>Outhub identity provider</small></div>
+    <button class="secondary" id="toggleOuthub">Configure</button>
+   </div>
+   <div id="outhubConfig" style="display:none;padding:10px 0 20px">
+    <label class="muted">Enter your webapp domain!</label>
+    <input id="outhubDomain" placeholder="https://example.com">
+    <button class="primary" id="saveOuthub">Enable</button>
+   </div>
+  </div>
+ </div>
+ <div class="panel">
+  <h2>Provider status</h2>
+  <div class="info-grid">
+   <div class="info"><small>Alislamiah AI</small><strong>${auth.alislamiah.enabled?"Enabled (local setting)":"Disabled"}</strong></div>
+   <div class="info"><small>Outhub</small><strong>${auth.outhub.enabled?"Enabled (local setting)":"Disabled"}</strong></div>
+  </div>
+  <p class="muted" style="margin-top:15px">These settings are saved locally. Provider sign-in is not yet connected to a working Outbase authentication service.</p>
+ </div>`;
+
+ document.getElementById("startAuthentication").onclick=()=>{
+  document.getElementById("authSetup").style.display="block";
+ };
+ document.getElementById("toggleAlislamiah").onclick=()=>{
+  document.getElementById("alislamiahConfig").style.display="block";
+  document.getElementById("alislamiahDomain").value=auth.alislamiah.domain||"";
+ };
+ document.getElementById("toggleOuthub").onclick=()=>{
+  document.getElementById("outhubConfig").style.display="block";
+  document.getElementById("outhubDomain").value=auth.outhub.domain||"";
+ };
+ document.getElementById("saveAlislamiah").onclick=()=>saveProvider("alislamiah");
+ document.getElementById("saveOuthub").onclick=()=>saveProvider("outhub");
+}
+
+function saveProvider(provider){
+ const field=document.getElementById(provider+"Domain");
+ const domain=field.value.trim();
+ try{
+  const url=new URL(domain);
+  if(!["https:","http:"].includes(url.protocol))throw new Error();
+ }catch(e){
+  alert("Please enter a valid webapp domain, including https://");
+  return;
+ }
+ activeProject.auth[provider]={enabled:true,domain};
+ saveProjects();
+ renderAuthentication();
+}
+
+function renderUsers(){
+ const users=activeProject.users||[];
+ content.innerHTML=`
+ <h1>Users</h1>
+ <p class="subtitle">Users recorded for this project.</p>
+ <div class="panel">
+  <h2>Project users</h2>
+  <p class="muted">This list contains only user records saved locally in this browser. It does not automatically collect users from your applications.</p>
+  <div id="usersList"></div>
+ </div>`;
+ const list=document.getElementById("usersList");
+ if(!users.length){
+  list.innerHTML='<div class="empty">No users have been recorded for this project yet.</div>';
+  return;
+ }
+ users.forEach(user=>{
+  const item=document.createElement("div");
+  item.className="info";
+  item.style.marginTop="10px";
+  item.innerHTML="<strong>"+escapeHTML(user.name||"User")+"</strong><div class='muted'>"+escapeHTML(user.email||"No email")+"</div>";
+  list.appendChild(item);
+ });
+}
+
+async function copyText(value){
+ try{
+  await navigator.clipboard.writeText(value);
+  alert("Copied successfully.");
+ }catch(e){
+  const area=document.createElement("textarea");
+  area.value=value;
+  document.body.appendChild(area);
+  area.select();
+  document.execCommand("copy");
+  area.remove();
+  alert("Copied.");
+ }
+}
+
+document.getElementById("menuBtn").onclick=()=>{
+ document.getElementById("sidebar").classList.toggle("open");
+};
+function closeMenu(){document.getElementById("sidebar").classList.remove("open")}
+
+document.getElementById("signoutBtn").onclick=async()=>{
+ await signOut(auth);
+ location.href="signin.html";
+};
+</script>
+</body>
+</html>
