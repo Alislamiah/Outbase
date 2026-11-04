@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#07111f">
+<title>Sign in — Outbase</title>
+<link rel="icon" href="icon.png">
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at top,#12345a,#07111f 55%,#040914);font-family:Arial,sans-serif;color:#fff}
+.container{width:100%;max-width:430px;background:linear-gradient(145deg,#10243b,#091626);border:1px solid #24415f;border-radius:20px;padding:30px;box-shadow:0 25px 70px #0007}
+.brand{text-align:center;font-size:27px;font-weight:800;margin-bottom:12px}
+.brand span{color:#42aaff}
+h1{text-align:center;font-size:23px;margin:15px 0 8px}
+.desc{text-align:center;color:#9bb1c8;font-size:13px;line-height:1.7;margin-bottom:25px}
+button{width:100%;padding:15px;border:0;border-radius:10px;background:linear-gradient(100deg,#1675d1,#35aaff);color:#fff;font-weight:bold;font-size:14px;cursor:pointer;margin-top:12px}
+button.secondary{background:#142b44;border:1px solid #315273}
+.account{padding:22px;border:1px solid #294766;border-radius:14px;background:#0a192a;text-align:center;animation:pop .3s ease}
+@keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+.avatar{width:75px;height:75px;border-radius:50%;object-fit:cover;background:#203d5b;margin-bottom:12px;border:2px solid #2a4a6b}
+.account strong,.account small{display:block;overflow-wrap:anywhere}
+.account strong{font-size:16px}
+.account small{color:#9bb1c8;margin-top:7px;font-size:13px}
+.message{text-align:center;color:#9bb1c8;font-size:14px;line-height:1.8;padding:20px 0}
+.loading{color:#42aaff}
+a{color:#7dbfff;text-decoration:none}
+.back{text-align:center;margin-top:20px;font-size:13px}
+</style>
+</head>
+<body>
+<div class="container">
+ <div class="brand">Out<span>base</span></div>
+ <h1>مرحبا بك في Outbase</h1>
+ 
+ <div id="loading" class="message loading">جاري التحقق من حساب Alislamiah AI...</div>
+
+ <div id="accountChoice" style="display:none">
+  <p class="desc">تم العثور على حسابك. يمكنك المتابعة الآن.</p>
+  <div class="account">
+   <img id="avatar" class="avatar" alt="Account photo">
+   <strong id="userName"></strong>
+   <small id="userEmail"></small>
+  </div>
+  <button id="continueBtn">متابعة بهذا الحساب</button>
+  <button class="secondary" id="switchBtn">تسجيل خروج</button>
+ </div>
+
+ <div id="notLogged" style="display:none">
+  <p class="desc">للوصول إلى Outbase يجب أن تكون مسجلاً في Alislamiah AI.</p>
+  <div class="message">
+    أنت غير مسجل الدخول حالياً.<br>
+    سجل دخولك ثم عد إلى هنا وسيتم تحديث الصفحة تلقائيا.
+  </div>
+  <button id="goLoginBtn">سجل دخولك في Alislamiah AI</button>
+ </div>
+
+ <div class="back"><a href="index.html">Back to Home</a></div>
+</div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+import {getAuth,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+
+const firebaseConfig={
+ apiKey:"AIzaSyBrv1ky0Br5nLb68uvdXE3o6QdzTKpIU4g",
+ authDomain:"alislamiah-ai-34202.firebaseapp.com",
+ projectId:"alislamiah-ai-34202",
+ storageBucket:"alislamiah-ai-34202.firebasestorage.app",
+ messagingSenderId:"683051452829",
+ appId:"1:683051452829:web:e96e40422c7f31e563c774",
+ measurementId:"G-LFQLND010S"
+};
+
+// رابط تسجيل الدخول الرئيسي عندك
+const ALISLAMIAH_LOGIN_URL = "https://alislamiah-ai-34202.web.app/login.html"; 
+
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+
+const loadingEl = document.getElementById("loading");
+const choiceEl = document.getElementById("accountChoice");
+const notLoggedEl = document.getElementById("notLogged");
+
+onAuthStateChanged(auth,user=>{
+ loadingEl.style.display="none";
+ if(user){
+  choiceEl.style.display="block";
+  notLoggedEl.style.display="none";
+  document.getElementById("userName").textContent=user.displayName||"مستخدم Alislamiah AI";
+  document.getElementById("userEmail").textContent=user.email||"";
+  document.getElementById("avatar").src=user.photoURL||"icon.png";
+ }else{
+  choiceEl.style.display="none";
+  notLoggedEl.style.display="block";
+ }
+});
+
+document.getElementById("continueBtn").onclick=()=>{
+ // لو كان جاي من redirect ارجعه لمكانه
+ const params = new URLSearchParams(window.location.search);
+ const redirect = params.get("redirect");
+ location.href = redirect ? decodeURIComponent(redirect) : "index.html";
+};
+
+document.getElementById("switchBtn").onclick=async()=>{
+ await signOut(auth);
+};
+
+document.getElementById("goLoginBtn").onclick=()=>{
+ const returnUrl = encodeURIComponent(window.location.href);
+ window.location.href = `${ALISLAMIAH_LOGIN_URL}?redirect=${returnUrl}`;
+};
+
+// تحديث تلقائي عند تسجيل الدخول في تبويب آخر
+window.addEventListener("storage", () => location.reload());
+</script>
+</body>
+</html>
