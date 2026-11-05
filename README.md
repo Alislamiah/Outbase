@@ -19,45 +19,9 @@ header{
  justify-content:space-between;border-bottom:1px solid #ffffff12;
  background:#07111fbb;position:sticky;top:0;z-index:20
 }
-.header-left{display:flex;align-items:center;gap:15px}
 .brand{font-size:24px;font-weight:800;letter-spacing:.5px}
 .brand span{color:#38a4ff}
 header a{color:#b9cce2;text-decoration:none;font-size:14px}
-.menu-btn{
- width:42px;height:42px;background:#10243b;border:1px solid #29445f;
- border-radius:10px;display:flex;flex-direction:column;
- align-items:center;justify-content:center;gap:5px;cursor:pointer
-}
-.menu-btn span{width:19px;height:2px;background:white;border-radius:5px}
-
-/* Sidebar */
-.overlay{
- position:fixed;inset:0;background:#0009;z-index:29;display:none
-}
-.overlay.show{display:block}
-.sidebar{
- position:fixed;left:0;top:0;bottom:0;width:270px;max-width:85%;
- background:#09182a;border-right:1px solid #ffffff15;
- z-index:30;padding:23px 17px;
- transform:translateX(-105%);transition:.25s ease
-}
-.sidebar.open{transform:translateX(0)}
-.side-head{
- display:flex;justify-content:space-between;align-items:center;
- padding-bottom:22px;border-bottom:1px solid #ffffff12;margin-bottom:22px
-}
-.side-title{font-size:21px;font-weight:bold}
-.side-title span{color:#38a4ff}
-.close-menu{background:none;border:0;color:white;font-size:27px;cursor:pointer}
-.side-label{font-size:11px;color:#6f89a5;padding:12px}
-.side-btn{
- width:100%;display:flex;align-items:center;gap:13px;
- padding:15px 13px;border:0;border-radius:10px;
- background:transparent;color:#c4d5e8;text-align:left;
- font-size:14px;cursor:pointer;margin:3px 0;text-decoration:none
-}
-.side-btn:hover{background:#102d4b;color:#55b7ff}
-.side-btn span{font-size:19px;width:22px;text-align:center}
 
 /* Main */
 main{max-width:1000px;margin:65px auto;padding:25px;text-align:center}
@@ -187,39 +151,9 @@ nav a.active{color:#49aaff}
 <div id="app" style="visibility:hidden">
 
 <header>
- <div class="header-left">
-  <button class="menu-btn" id="menuBtn" aria-label="Open menu">
-   <span></span><span></span><span></span>
-  </button>
-  <div class="brand">Out<span>base</span></div>
- </div>
+ <div class="brand">Out<span>base</span></div>
  <a href="Projects.html" id="accountLink">My account</a>
 </header>
-
-<div class="overlay" id="overlay"></div>
-
-<aside class="sidebar" id="sidebar">
- <div class="side-head">
-  <div class="side-title">Out<span>base</span></div>
-  <button class="close-menu" id="closeMenu">×</button>
- </div>
-
- <div class="side-label">DEVELOPER DASHBOARD</div>
-
- <a class="side-btn" href="Projects.html?view=settings">
-  <span>⚙</span> Settings
- </a>
-
- <a class="side-btn" href="Projects.html?view=authentication">
-  <span>🔐</span> Authentication
- </a>
-
- <div class="side-label">ACCOUNT</div>
-
- <a class="side-btn" href="Projects.html">
-  <span>▦</span> Your projects
- </a>
-</aside>
 
 <main>
 
@@ -341,7 +275,6 @@ import {
  getFirestore,
  collection,
  doc,
- getDoc,
  getDocs,
  runTransaction,
  serverTimestamp
@@ -385,26 +318,6 @@ const createArea=document.getElementById("createArea");
 const createBtn=document.getElementById("createBtn");
 const nameInput=document.getElementById("projectName");
 const message=document.getElementById("message");
-
-const sidebar=document.getElementById("sidebar");
-const overlay=document.getElementById("overlay");
-
-
-/* SIDEBAR */
-
-function openMenu(){
- sidebar.classList.add("open");
- overlay.classList.add("show");
-}
-
-function closeMenu(){
- sidebar.classList.remove("open");
- overlay.classList.remove("show");
-}
-
-document.getElementById("menuBtn").onclick=openMenu;
-document.getElementById("closeMenu").onclick=closeMenu;
-overlay.onclick=closeMenu;
 
 
 /* FIRESTORE PATHS */
@@ -561,10 +474,7 @@ createBtn.onclick=async()=>{
   const uid=currentUser.uid;
   const accRef=accountRef(uid);
 
-  // Create a unique Firestore document reference
   const newProjectRef=doc(projectsRef(uid));
-
-  // Project ID includes random digits
   const projectId=makeProjectId(name);
 
   await runTransaction(db,async(transaction)=>{
@@ -581,18 +491,11 @@ createBtn.onclick=async()=>{
 
    let activeProjects=Number(accountData.activeProjects);
 
-   // Initialize the counter for existing accounts
    if(!Number.isFinite(activeProjects)){
     activeProjects=allUserProjects.length;
    }
 
    const reachedLimits=accountData.reachedLimits||{};
-
-   /*
-    IMPORTANT:
-    Once the account reaches its plan limit,
-    deleting a project does NOT restore that quota.
-   */
 
    if(reachedLimits[plan]===true){
     throw new Error("PROJECT_LIMIT_REACHED");
@@ -617,7 +520,6 @@ createBtn.onclick=async()=>{
     ...reachedLimits
    };
 
-   // Mark the quota as consumed when it is reached
    if(nextCount>=limit){
     updatedLimits[plan]=true;
    }
