@@ -157,17 +157,17 @@ nav a.active{color:#49aaff}
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
 
 const firebaseConfig = {
- apiKey: "AIzaSyBD5oX38E2jjKS_vdR75Q5rjisqYYZYPBg",
- authDomain: "outbase-e2ce4.firebaseapp.com",
- projectId: "outbase-e2ce4",
- storageBucket: "outbase-e2ce4.firebasestorage.app",
- messagingSenderId: "931395825346",
- appId: "1:931395825346:web:2e7daf095e3a9d3513955b",
- measurementId: "G-557NM7CCL6"
+ apiKey: "AIzaSyBrv1ky0Br5nLb68uvdXE3o6QdzTKpIU4g",
+ authDomain: "alislamiah-ai-34202.firebaseapp.com",
+ projectId: "alislamiah-ai-34202",
+ storageBucket: "alislamiah-ai-34202.firebasestorage.app",
+ messagingSenderId: "683051452829",
+ appId: "1:683051452829:web:e96e40422c7f31e563c774",
+ measurementId: "G-LFQLND010S"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -175,7 +175,7 @@ const auth = getAuth(app);
 
 let currentUser = null;
 let allUserProjects = [];
-const LOGIN_URL = "https://alislamiah-ai-34202.web.app/login.html";
+const LOGIN_URL = "signin.html";
 
 const startBtn = document.getElementById("startBtn");
 const createArea = document.getElementById("createArea");
