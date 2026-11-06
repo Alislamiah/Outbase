@@ -264,12 +264,14 @@ nav a.active{color:#49aaff}
 
 import {
  initializeApp
-} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+} from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
 
 import {
  getAuth,
- onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+ onAuthStateChanged,
+ setPersistence,
+ browserLocalPersistence
+} from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 
 import {
  getFirestore,
@@ -278,27 +280,29 @@ import {
  getDocs,
  runTransaction,
  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 
 
-/* FIREBASE CONFIG */
+/* FIREBASE CONFIG (Outbase Project) */
 
-const firebaseConfig={
- apiKey:"AIzaSyBrv1ky0Br5nLb68uvdXE3o6QdzTKpIU4g",
- authDomain:"alislamiah-ai-34202.firebaseapp.com",
- projectId:"alislamiah-ai-34202",
- storageBucket:"alislamiah-ai-34202.firebasestorage.app",
- messagingSenderId:"683051452829",
- appId:"1:683051452829:web:e96e40422c7f31e563c774",
- measurementId:"G-LFQLND010S"
+const firebaseConfig = {
+ apiKey: "AIzaSyBD5oX38E2jjKS_vdR75Q5rjisqYYZYPBg",
+ authDomain: "outbase-e2ce4.firebaseapp.com",
+ projectId: "outbase-e2ce4",
+ storageBucket: "outbase-e2ce4.firebasestorage.app",
+ messagingSenderId: "931395825346",
+ appId: "1:931395825346:web:2e7daf095e3a9d3513955b",
+ measurementId: "G-557NM7CCL6"
 };
 
-const app=initializeApp(firebaseConfig);
-const auth=getAuth(app);
-const db=getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-let currentUser=null;
-let allUserProjects=[];
+let currentUser = null;
+let allUserProjects = [];
+
+const LOGIN_URL = "https://alislamiah-ai-34202.web.app/login.html";
 
 
 /* PLAN LIMITS */
@@ -438,7 +442,8 @@ function escapeHTML(value){
 startBtn.onclick=()=>{
 
  if(!currentUser){
-  location.href="signin.html";
+  const returnUrl = encodeURIComponent(window.location.href);
+  location.href = `${LOGIN_URL}?redirect=${returnUrl}`;
   return;
  }
 
@@ -454,7 +459,8 @@ startBtn.onclick=()=>{
 createBtn.onclick=async()=>{
 
  if(!currentUser){
-  location.href="signin.html";
+  const returnUrl = encodeURIComponent(window.location.href);
+  location.href = `${LOGIN_URL}?redirect=${returnUrl}`;
   return;
  }
 
@@ -537,14 +543,8 @@ createBtn.onclick=async()=>{
     createdAt:serverTimestamp(),
     apiKey:"ob_"+crypto.randomUUID().replace(/-/g,""),
     auth:{
-     alislamiah:{
-      enabled:false,
-      domain:""
-     },
-     outhub:{
-      enabled:false,
-      domain:""
-     }
+     alislamiah:{enabled:false,domain:""},
+     outhub:{enabled:false,domain:""}
     },
     users:[]
    });
@@ -589,16 +589,42 @@ nameInput.addEventListener("keydown",e=>{
 });
 
 
-/* AUTHENTICATION SESSION */
+/* AUTHENTICATION SESSION & ALISLAMIAH AI INTEGRATION */
+
+await setPersistence(auth, browserLocalPersistence);
+
+function getSavedAccounts(){
+ try{ return JSON.parse(localStorage.getItem("alislamiah_saved_accounts") || "[]"); }
+ catch(e){ return []; }
+}
+
+function saveAccountToLocal(user){
+ let accounts = getSavedAccounts();
+ const existingIndex = accounts.findIndex(a => a.uid === user.uid);
+ const accountData = {
+  uid: user.uid,
+  name: user.displayName || user.email.split('@')[0],
+  email: user.email || "",
+  photoURL: user.photoURL || ""
+ };
+ if(existingIndex >= 0){
+  accounts[existingIndex] = accountData;
+ } else {
+  accounts.push(accountData);
+ }
+ localStorage.setItem("alislamiah_saved_accounts", JSON.stringify(accounts));
+}
 
 onAuthStateChanged(auth,async(user)=>{
 
  if(!user){
-  location.replace("signin.html");
+  const returnUrl = encodeURIComponent(window.location.href);
+  location.href = `${LOGIN_URL}?redirect=${returnUrl}`;
   return;
  }
 
  currentUser=user;
+ saveAccountToLocal(user);
 
  document.getElementById("accountLink").textContent=
   user.displayName||user.email||"My account";
