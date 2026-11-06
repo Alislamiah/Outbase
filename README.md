@@ -263,36 +263,35 @@ nav a.active{color:#49aaff}
 <script type="module">
 
 import {
- initializeApp
+  initializeApp
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
 
 import {
- getAuth,
- onAuthStateChanged,
- setPersistence,
- browserLocalPersistence
+  getAuth,
+  onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 
 import {
- getFirestore,
- collection,
- doc,
- getDocs,
- runTransaction,
- serverTimestamp
+  getFirestore,
+  collection,
+  doc,
+  getDocs,
+  runTransaction,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 
 
-/* FIREBASE CONFIG (Outbase Project) */
-
+/* FIREBASE CONFIG */
 const firebaseConfig = {
- apiKey: "AIzaSyBD5oX38E2jjKS_vdR75Q5rjisqYYZYPBg",
- authDomain: "outbase-e2ce4.firebaseapp.com",
- projectId: "outbase-e2ce4",
- storageBucket: "outbase-e2ce4.firebasestorage.app",
- messagingSenderId: "931395825346",
- appId: "1:931395825346:web:2e7daf095e3a9d3513955b",
- measurementId: "G-557NM7CCL6"
+  apiKey: "AIzaSyBD5oX38E2jjKS_vdR75Q5rjisqYYZYPBg",
+  authDomain: "outbase-e2ce4.firebaseapp.com",
+  projectId: "outbase-e2ce4",
+  storageBucket: "outbase-e2ce4.firebasestorage.app",
+  messagingSenderId: "931395825346",
+  appId: "1:931395825346:web:2e7daf095e3a9d3513955b",
+  measurementId: "G-557NM7CCL6"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -304,347 +303,308 @@ let allUserProjects = [];
 
 const LOGIN_URL = "https://alislamiah-ai-34202.web.app/login.html";
 
-
 /* PLAN LIMITS */
-
-const PLAN_LIMITS={
- free:4,
- pro:8,
- gold:16,
- extra:20
+const PLAN_LIMITS = {
+  free: 4,
+  pro: 8,
+  gold: 16,
+  extra: 20
 };
-
 
 /* ELEMENTS */
+const startBtn = document.getElementById("startBtn");
+const createArea = document.getElementById("createArea");
+const createBtn = document.getElementById("createBtn");
+const nameInput = document.getElementById("projectName");
+const message = document.getElementById("message");
 
-const startBtn=document.getElementById("startBtn");
-const createArea=document.getElementById("createArea");
-const createBtn=document.getElementById("createBtn");
-const nameInput=document.getElementById("projectName");
-const message=document.getElementById("message");
-
-
-/* FIRESTORE PATHS */
-
-function accountRef(uid){
- return doc(db,"users",uid);
+/* PATHS */
+function accountRef(uid) {
+  return doc(db, "users", uid);
 }
 
-function projectsRef(uid){
- return collection(db,"users",uid,"projects");
+function projectsRef(uid) {
+  return collection(db, "users", uid, "projects");
 }
-
 
 /* PROJECT ID */
+function makeProjectId(name) {
+  const clean = name.trim()
+    .replace(/[^a-zA-Z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase()
+    .slice(0, 30);
 
-function makeProjectId(name){
- const clean=name.trim()
-  .replace(/[^a-zA-Z0-9_-]+/g,"-")
-  .replace(/^-+|-+$/g,"");
-
- const digits=Math.floor(1000+Math.random()*99999996);
-
- return clean+"-"+digits;
+  const random = Math.floor(100000 + Math.random() * 900000);
+  return `\( {clean}- \){random}`;
 }
-
 
 /* DATE FORMAT */
-
-function formatDate(date){
- if(!date)return "Recently created";
-
- const d=date.toDate?date.toDate():new Date(date);
-
- return d.toLocaleDateString("en-US",{
-  year:"numeric",
-  month:"short",
-  day:"numeric"
- });
+function formatDate(date) {
+  if (!date) return "Recently created";
+  const d = date.toDate ? date.toDate() : new Date(date);
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  });
 }
-
 
 /* LOAD PROJECTS */
+async function loadProjects() {
+  try {
+    const snapshot = await getDocs(projectsRef(currentUser.uid));
 
-async function loadProjects(){
+    allUserProjects = snapshot.docs.map(d => ({
+      ...d.data(),
+      documentId: d.id
+    }));
 
- const snapshot=await getDocs(projectsRef(currentUser.uid));
+    allUserProjects.sort((a, b) => {
+      const dateA = a.createdAt?.toMillis?.() || 0;
+      const dateB = b.createdAt?.toMillis?.() || 0;
+      return dateB - dateA;
+    });
 
- allUserProjects=snapshot.docs.map(d=>({
-  ...d.data(),
-  documentId:d.id
- }));
-
- allUserProjects.sort((a,b)=>{
-  const dateA=a.createdAt?.toMillis?.()||0;
-  const dateB=b.createdAt?.toMillis?.()||0;
-  return dateB-dateA;
- });
-
- renderProjects();
+    renderProjects();
+  } catch (error) {
+    console.error("Error loading projects:", error);
+    document.getElementById("lastProjects").innerHTML =
+      `<div class="empty" style="color:#ff8585">Failed to load projects</div>`;
+    document.getElementById("allProjects").innerHTML =
+      `<div class="empty" style="color:#ff8585">Failed to load projects</div>`;
+  }
 }
-
 
 /* RENDER PROJECTS */
+function renderProjects() {
+  const last = document.getElementById("lastProjects");
+  const all = document.getElementById("allProjects");
 
-function renderProjects(){
+  document.getElementById("projectCount").textContent =
+    allUserProjects.length + " projects";
 
- const last=document.getElementById("lastProjects");
- const all=document.getElementById("allProjects");
+  const latest = allUserProjects.slice(0, 3);
 
- document.getElementById("projectCount").textContent=
-  allUserProjects.length+" projects";
+  document.getElementById("lastCount").textContent =
+    latest.length + " projects";
 
- const latest=allUserProjects.slice(0,3);
-
- document.getElementById("lastCount").textContent=
-  latest.length+" projects";
-
- function card(p){
-  return `
-   <div class="project-card">
-    <strong>${escapeHTML(p.name)}</strong>
-    <small>Project ID: ${escapeHTML(p.id)}</small>
-    <small>Created: ${formatDate(p.createdAt)}</small>
-    <a href="Projects.html">Manage project →</a>
-   </div>
-  `;
- }
-
- if(latest.length){
-  last.innerHTML=latest.map(card).join("");
- }else{
-  last.innerHTML='<div class="empty">Your recent projects will appear here.</div>';
- }
-
- if(allUserProjects.length){
-  all.innerHTML=allUserProjects.map(card).join("");
- }else{
-  all.innerHTML='<div class="empty">You have no projects yet. Start your first project!</div>';
- }
-}
-
-
-/* HTML SAFETY */
-
-function escapeHTML(value){
- return String(value??"").replace(/[&<>"']/g,c=>({
-  "&":"&amp;",
-  "<":"&lt;",
-  ">":"&gt;",
-  '"':"&quot;",
-  "'":"&#39;"
- }[c]));
-}
-
-
-/* START PROJECT */
-
-startBtn.onclick=()=>{
-
- if(!currentUser){
-  const returnUrl = encodeURIComponent(window.location.href);
-  location.href = `${LOGIN_URL}?redirect=${returnUrl}`;
-  return;
- }
-
- createArea.style.display="block";
- startBtn.style.display="none";
-
- nameInput.focus();
-};
-
-
-/* CREATE PROJECT */
-
-createBtn.onclick=async()=>{
-
- if(!currentUser){
-  const returnUrl = encodeURIComponent(window.location.href);
-  location.href = `${LOGIN_URL}?redirect=${returnUrl}`;
-  return;
- }
-
- const name=nameInput.value.trim();
-
- if(name.length<2){
-  message.textContent="Please enter a project name (at least 2 characters).";
-  return;
- }
-
- createBtn.disabled=true;
- message.style.color="#91a9c2";
- message.textContent="Creating your project...";
-
- try{
-
-  const uid=currentUser.uid;
-  const accRef=accountRef(uid);
-
-  const newProjectRef=doc(projectsRef(uid));
-  const projectId=makeProjectId(name);
-
-  await runTransaction(db,async(transaction)=>{
-
-   const accountSnap=await transaction.get(accRef);
-
-   let accountData=accountSnap.exists()
-    ?accountSnap.data()
-    :{};
-
-   const plan=String(accountData.plan||"free").toLowerCase();
-
-   const limit=PLAN_LIMITS[plan]||4;
-
-   let activeProjects=Number(accountData.activeProjects);
-
-   if(!Number.isFinite(activeProjects)){
-    activeProjects=allUserProjects.length;
-   }
-
-   const reachedLimits=accountData.reachedLimits||{};
-
-   if(reachedLimits[plan]===true){
-    throw new Error("PROJECT_LIMIT_REACHED");
-   }
-
-   if(activeProjects>=limit){
-
-    transaction.set(accRef,{
-     activeProjects:activeProjects,
-     reachedLimits:{
-      ...reachedLimits,
-      [plan]:true
-     }
-    },{merge:true});
-
-    throw new Error("PROJECT_LIMIT_REACHED");
-   }
-
-   const nextCount=activeProjects+1;
-
-   const updatedLimits={
-    ...reachedLimits
-   };
-
-   if(nextCount>=limit){
-    updatedLimits[plan]=true;
-   }
-
-   transaction.set(accRef,{
-    activeProjects:nextCount,
-    plan:plan,
-    reachedLimits:updatedLimits
-   },{merge:true});
-
-   transaction.set(newProjectRef,{
-    id:projectId,
-    name:name,
-    ownerUid:uid,
-    createdAt:serverTimestamp(),
-    apiKey:"ob_"+crypto.randomUUID().replace(/-/g,""),
-    auth:{
-     alislamiah:{enabled:false,domain:""},
-     outhub:{enabled:false,domain:""}
-    },
-    users:[]
-   });
-
-  });
-
-  message.style.color="#4ade80";
-  message.textContent="Project created successfully!";
-
-  setTimeout(()=>{
-   location.href="Projects.html";
-  },700);
-
- }catch(error){
-
-  console.error(error);
-
-  if(error.message==="PROJECT_LIMIT_REACHED"){
-
-   document.getElementById("limitPanel").style.display="block";
-
-   message.style.color="#ffc477";
-   message.textContent="Project limit reached. Upgrade your plan to continue.";
-
-  }else{
-
-   message.style.color="#ff7777";
-   message.textContent="Failed to create project: "+error.message;
-
+  function card(p) {
+    return `
+      <div class="project-card">
+        <strong>${escapeHTML(p.name)}</strong>
+        <small>Project ID: ${escapeHTML(p.id)}</small>
+        <small>Created: ${formatDate(p.createdAt)}</small>
+        <a href="Projects.html">Manage project →</a>
+      </div>
+    `;
   }
 
-  createBtn.disabled=false;
- }
+  if (latest.length) {
+    last.innerHTML = latest.map(card).join("");
+  } else {
+    last.innerHTML = '<div class="empty">Your recent projects will appear here.</div>';
+  }
 
+  if (allUserProjects.length) {
+    all.innerHTML = allUserProjects.map(card).join("");
+  } else {
+    all.innerHTML = '<div class="empty">You have no projects yet. Start your first project!</div>';
+  }
+}
+
+/* HTML SAFETY */
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[c]));
+}
+
+/* START PROJECT */
+startBtn.onclick = () => {
+  if (!currentUser) {
+    const returnUrl = encodeURIComponent(window.location.href);
+    location.href = `\( {LOGIN_URL}?redirect= \){returnUrl}`;
+    return;
+  }
+
+  createArea.style.display = "block";
+  startBtn.style.display = "none";
+  nameInput.focus();
 };
 
+/* CREATE PROJECT */
+createBtn.onclick = async () => {
+  if (!currentUser) {
+    const returnUrl = encodeURIComponent(window.location.href);
+    location.href = `\( {LOGIN_URL}?redirect= \){returnUrl}`;
+    return;
+  }
+
+  const name = nameInput.value.trim();
+
+  if (name.length < 2) {
+    message.style.color = "#ffb1b1";
+    message.textContent = "Please enter a project name (at least 2 characters).";
+    return;
+  }
+
+  createBtn.disabled = true;
+  message.style.color = "#91a9c2";
+  message.textContent = "Creating your project...";
+
+  try {
+    const uid = currentUser.uid;
+    const accRef = accountRef(uid);
+    const newProjectRef = doc(projectsRef(uid));
+    const projectId = makeProjectId(name);
+
+    await runTransaction(db, async (transaction) => {
+      const accountSnap = await transaction.get(accRef);
+
+      let accountData = accountSnap.exists() ? accountSnap.data() : {};
+
+      const plan = String(accountData.plan || "free").toLowerCase();
+      const limit = PLAN_LIMITS[plan] || 4;
+
+      let activeProjects = Number(accountData.activeProjects);
+      if (!Number.isFinite(activeProjects)) {
+        activeProjects = allUserProjects.length;
+      }
+
+      const reachedLimits = accountData.reachedLimits || {};
+
+      // Check limit
+      if (reachedLimits[plan] === true || activeProjects >= limit) {
+        if (activeProjects >= limit) {
+          transaction.set(accRef, {
+            activeProjects: activeProjects,
+            plan: plan,
+            reachedLimits: {
+              ...reachedLimits,
+              [plan]: true
+            }
+          }, { merge: true });
+        }
+        throw new Error("PROJECT_LIMIT_REACHED");
+      }
+
+      const nextCount = activeProjects + 1;
+      const updatedLimits = { ...reachedLimits };
+
+      if (nextCount >= limit) {
+        updatedLimits[plan] = true;
+      }
+
+      // Update account
+      transaction.set(accRef, {
+        activeProjects: nextCount,
+        plan: plan,
+        reachedLimits: updatedLimits,
+        email: currentUser.email || "",
+        displayName: currentUser.displayName || "",
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      // Create project
+      transaction.set(newProjectRef, {
+        id: projectId,
+        name: name,
+        ownerUid: uid,
+        createdAt: serverTimestamp(),
+        apiKey: "ob_" + crypto.randomUUID().replace(/-/g, ""),
+        auth: {
+          alislamiah: { enabled: false, domain: "" },
+          outhub: { enabled: false, domain: "" }
+        },
+        users: []
+      });
+    });
+
+    message.style.color = "#4ade80";
+    message.textContent = "Project created successfully!";
+
+    setTimeout(() => {
+      location.href = "Projects.html";
+    }, 800);
+
+  } catch (error) {
+    console.error(error);
+
+    if (error.message === "PROJECT_LIMIT_REACHED") {
+      document.getElementById("limitPanel").style.display = "block";
+      message.style.color = "#ffc477";
+      message.textContent = "Project limit reached. Upgrade your plan to continue.";
+    } else {
+      message.style.color = "#ff7777";
+      message.textContent = "Failed to create project: " + (error.message || "Unknown error");
+    }
+
+    createBtn.disabled = false;
+  }
+};
 
 /* ENTER KEY */
-
-nameInput.addEventListener("keydown",e=>{
- if(e.key==="Enter")createBtn.click();
+nameInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") createBtn.click();
 });
 
-
-/* AUTHENTICATION SESSION & ALISLAMIAH AI INTEGRATION */
-
+/* AUTH */
 await setPersistence(auth, browserLocalPersistence);
 
-function getSavedAccounts(){
- try{ return JSON.parse(localStorage.getItem("alislamiah_saved_accounts") || "[]"); }
- catch(e){ return []; }
+function getSavedAccounts() {
+  try {
+    return JSON.parse(localStorage.getItem("alislamiah_saved_accounts") || "[]");
+  } catch (e) {
+    return [];
+  }
 }
 
-function saveAccountToLocal(user){
- let accounts = getSavedAccounts();
- const existingIndex = accounts.findIndex(a => a.uid === user.uid);
- const accountData = {
-  uid: user.uid,
-  name: user.displayName || user.email.split('@')[0],
-  email: user.email || "",
-  photoURL: user.photoURL || ""
- };
- if(existingIndex >= 0){
-  accounts[existingIndex] = accountData;
- } else {
-  accounts.push(accountData);
- }
- localStorage.setItem("alislamiah_saved_accounts", JSON.stringify(accounts));
+function saveAccountToLocal(user) {
+  let accounts = getSavedAccounts();
+  const existingIndex = accounts.findIndex(a => a.uid === user.uid);
+  const accountData = {
+    uid: user.uid,
+    name: user.displayName || (user.email ? user.email.split('@')[0] : "User"),
+    email: user.email || "",
+    photoURL: user.photoURL || ""
+  };
+
+  if (existingIndex >= 0) {
+    accounts[existingIndex] = accountData;
+  } else {
+    accounts.push(accountData);
+  }
+  localStorage.setItem("alislamiah_saved_accounts", JSON.stringify(accounts));
 }
 
-onAuthStateChanged(auth,async(user)=>{
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    const returnUrl = encodeURIComponent(window.location.href);
+    location.href = `\( {LOGIN_URL}?redirect= \){returnUrl}`;
+    return;
+  }
 
- if(!user){
-  const returnUrl = encodeURIComponent(window.location.href);
-  location.href = `${LOGIN_URL}?redirect=${returnUrl}`;
-  return;
- }
+  currentUser = user;
+  saveAccountToLocal(user);
 
- currentUser=user;
- saveAccountToLocal(user);
+  document.getElementById("accountLink").textContent =
+    user.displayName || user.email || "My account";
 
- document.getElementById("accountLink").textContent=
-  user.displayName||user.email||"My account";
-
- try{
-
-  await loadProjects();
-
-  document.getElementById("loading").style.display="none";
-  document.getElementById("app").style.visibility="visible";
-
- }catch(error){
-
-  console.error(error);
-
-  document.getElementById("loading").innerHTML=
-   '<div style="text-align:center;color:#ff8585">Failed to load projects. Please refresh.</div>';
-
- }
-
+  try {
+    await loadProjects();
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("app").style.visibility = "visible";
+  } catch (error) {
+    console.error(error);
+    document.getElementById("loading").innerHTML =
+      '<div style="text-align:center;color:#ff8585">Failed to load projects. Please refresh.<br><small>' +
+      (error.message || "") + '</small></div>';
+  }
 });
 
 </script>
