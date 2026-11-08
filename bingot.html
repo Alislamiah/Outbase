@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#07111f">
+<title>Bingot Database</title>
+<link rel="icon" href="icon.png">
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+--bg:#07111f;
+--panel:#0d1b2d;
+--panel2:#11243a;
+--border:#203750;
+--blue:#3985ff;
+--cyan:#24c8e8;
+--text:#edf5ff;
+--muted:#8296ad;
+--green:#29d69b;
+--red:#ff657a;
+}
+
+body{
+background:
+radial-gradient(ellipse at 10% 0%,#102b4c,transparent 40%),
+radial-gradient(ellipse at 100% 100%,#102c3e,transparent 35%),
+var(--bg);
+color:var(--text);
+font-family:Inter,Arial,sans-serif;
+min-height:100vh;
+}
+
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+
+.screen{display:none;min-height:100vh;padding:22px}
+.screen.active{display:flex}
+.center{align-items:center;justify-content:center}
+
+.container{
+width:100%;
+max-width:850px;
+margin:auto;
+}
+
+.workspace{
+width:100%;
+max-width:1050px;
+margin:auto;
+}
+
+.logo{
+width:75px;height:75px;
+border-radius:23px;
+background:linear-gradient(135deg,#3985ff,#20c9e9);
+display:grid;place-items:center;
+font-size:36px;font-weight:900;
+margin:0 auto 25px;
+box-shadow:0 10px 40px #248cff40;
+}
+
+.welcome{text-align:center;width:100%;max-width:480px}
+
+h1{font-size:36px;margin-bottom:12px}
+h2{font-size:25px}
+h3{font-size:19px}
+
+.muted{
+color:var(--muted);
+font-size:13px;
+line-height:1.7;
+}
+
+.topbar{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:12px;
+margin-bottom:30px;
+flex-wrap:wrap;
+}
+
+.brand{
+display:flex;
+align-items:center;
+gap:12px;
+font-size:21px;
+font-weight:900;
+}
+
+.mini-logo{
+width:39px;height:39px;
+border-radius:12px;
+display:grid;place-items:center;
+background:linear-gradient(135deg,#3985ff,#20c9e9);
+}
+
+.status{
+background:#153a35;
+color:var(--green);
+padding:8px 12px;
+border-radius:20px;
+font-size:11px;
+}
+
+.panel{
+background:linear-gradient(145deg,#102239,#0b192a);
+border:1px solid var(--border);
+border-radius:18px;
+padding:27px;
+box-shadow:0 15px 45px #0002;
+}
+
+.description{
+color:var(--muted);
+font-size:13px;
+line-height:1.7;
+margin:10px 0 25px;
+}
+
+.field{margin-bottom:19px}
+
+.field label{
+display:block;
+font-size:13px;
+font-weight:700;
+margin-bottom:9px;
+}
+
+input,select,textarea{
+width:100%;
+background:#071524;
+border:1px solid var(--border);
+border-radius:10px;
+padding:13px;
+color:white;
+outline:none;
+min-width:0;
+}
+
+input:focus,select:focus,textarea:focus{
+border-color:var(--blue);
+box-shadow:0 0 0 3px #3985ff18;
+}
+
+input::placeholder{color:#647a92}
+
+.primary{
+border:0;
+background:linear-gradient(110deg,#3985ff,#20bde6);
+color:white;
+padding:14px 21px;
+border-radius:11px;
+font-weight:800;
+width:100%;
+margin-top:15px;
+}
+
+.primary:hover{filter:brightness(1.1)}
+.primary:disabled{opacity:.5;cursor:not-allowed}
+
+.secondary{
+background:#142b42;
+border:1px solid #29445e;
+color:#eaf4ff;
+padding:11px 16px;
+border-radius:10px;
+font-size:12px;
+font-weight:700;
+}
+
+.danger{
+background:#391d2a;
+border:1px solid #663044;
+color:#ff91a1;
+padding:9px 12px;
+border-radius:9px;
+font-size:12px;
+}
+
+.quota{
+margin-top:22px;
+background:#091727;
+border:1px solid var(--border);
+padding:17px;
+border-radius:12px;
+}
+
+.quota-head{
+display:flex;
+justify-content:space-between;
+gap:10px;
+font-size:12px;
+margin-bottom:12px;
+}
+
+.quota-head span:last-child{color:var(--cyan)}
+
+.progress{
+height:7px;
+background:#1c3045;
+border-radius:10px;
+overflow:hidden;
+}
+
+.progress div{
+height:100%;
+width:0%;
+background:linear-gradient(90deg,#3985ff,#22cce6);
+}
+
+.note{
+color:var(--muted);
+font-size:11px;
+line-height:1.7;
+margin-top:12px;
+}
+
+.loading{text-align:center;width:100%;max-width:400px;margin:auto}
+
+.spinner{
+width:50px;height:50px;
+border:4px solid #233c55;
+border-top-color:#28bde9;
+border-radius:50%;
+animation:spin .8s linear infinite;
+margin:0 auto 25px;
+}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.loading p{color:var(--muted);font-size:13px;margin-top:12px}
+
+.database-card{
+background:linear-gradient(120deg,#122e4c,#102239);
+border:1px solid #244565;
+padding:23px;
+border-radius:16px;
+margin-bottom:28px;
+}
+
+.database-card small{color:var(--muted)}
+.database-card h2{margin:9px 0;overflow-wrap:anywhere}
+
+.database-id{
+font-size:12px;
+color:#8eabc8;
+overflow-wrap:anywhere;
+}
+
+.section-title{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:12px;
+margin-bottom:17px;
+flex-wrap:wrap;
+}
+
+.list{
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+.item{
+background:#0d1c2e;
+border:1px solid var(--border);
+border-radius:13px;
+padding:17px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:12px;
+cursor:pointer;
+transition:.2s;
+}
+
+.item:hover{border-color:var(--blue);background:#112740}
+
+.item-name{font-weight:700;overflow-wrap:anywhere}
+.item-meta{color:var(--muted);font-size:11px;margin-top:7px}
+.arrow{color:var(--cyan);font-size:21px}
+
+.empty{
+text-align:center;
+padding:40px 15px;
+border:1px dashed #29415a;
+border-radius:14px;
+color:var(--muted);
+font-size:13px;
+line-height:2;
+}
+
+.back{
+background:none;
+border:0;
+color:#91b9e9;
+font-size:13px;
+margin-bottom:20px;
+}
+
+.breadcrumb{
+display:flex;
+align-items:center;
+flex-wrap:wrap;
+gap:8px;
+color:var(--muted);
+font-size:12px;
+margin-bottom:22px;
+}
+
+.breadcrumb button{
+background:none;border:0;color:#69b5ff;
+font-size:12px;
+}
+
+.collection-head,.document-head{
+margin-bottom:25px;
+}
+
+.collection-head h2,.document-head h2{
+margin:8px 0;
+overflow-wrap:anywhere;
+}
+
+.header-actions{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+
+.storage-card{margin-top:30px}
+
+.table-wrap{
+width:100%;
+overflow-x:auto;
+border:1px solid var(--border);
+border-radius:12px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+min-width:520px;
+}
+
+th{
+background:#142941;
+color:#a8c4e1;
+text-align:left;
+font-size:12px;
+padding:15px;
+}
+
+td{
+padding:14px 15px;
+border-top:1px solid var(--border);
+font-size:13px;
+overflow-wrap:anywhere;
+}
+
+td code{
+color:#8fc9ff;
+font-family:monospace;
+}
+
+.type-badge{
+background:#183552;
+color:#77c6ff;
+padding:5px 9px;
+border-radius:7px;
+font-size:11px;
+}
+
+.add-field{
+background:#102b43;
+border:1px dashed #3974a6;
+color:#83c8ff;
+padding:12px;
+width:100%;
+border-radius:10px;
+margin-top:14px;
+}
+
+.field-editor{
+display:flex;
+flex-direction:column;
+gap:12px;
+margin-top:20px;
+}
+
+.editor-row{
+display:grid;
+grid-template-columns:1.1fr 1fr 1.4fr 38px;
+gap:9px;
+align-items:center;
+}
+
+.editor-row input,.editor-row select{
+padding:11px 9px;
+font-size:12px;
+}
+
+.remove-field{
+height:38px;
+width:38px;
+background:#391d2a;
+color:#ff8193;
+border:0;
+border-radius:9px;
+}
+
+.editor-labels{
+display:grid;
+grid-template-columns:1.1fr 1fr 1.4fr 38px;
+gap:9px;
+font-size:11px;
+color:var(--muted);
+padding-bottom:5px;
+}
+
+.document-info{
+background:#0a1929;
+border:1px solid var(--border);
+padding:15px;
+border-radius:11px;
+margin-bottom:20px;
+}
+
+.document-info p{
+font-size:12px;
+color:var(--muted);
+margin-top:6px;
+}
+
+.toast{
+position:fixed;
+bottom:22px;
+left:50%;
+transform:translateX(-50%) translateY(20px);
+background:#173b38;
+border:1px solid #287c66;
+color:#c4ffeb;
+padding:13px 20px;
+border-radius:11px;
+font-size:13px;
+opacity:0;
+pointer-events:none;
+transition:.3s;
+z-index:1000;
+max-width:90%;
+text-align:center;
+}
+
+.toast.show{
+opacity:1;
+transform:translateX(-50%) translateY(0);
+}
+
+@media(max-width:650px){
+.screen{padding:16px}
+.panel{padding:20px}
+h1{font-size:29px}
+.editor-row{
+grid-template-columns:1fr 1fr 35px;
+}
+.editor-row .key{grid-column:1/3}
+.editor-row .type{grid-column:1}
+.editor-row .value{grid-column:2}
+.editor-row .remove-field{grid-column:3;grid-row:1/3;height:100%}
+.editor-labels{display:none}
+}
+</style>
+</head>
+
+<body>
+
+<!-- WELCOME -->
+<section id="welcome" class="screen center active">
+<div class="welcome">
+<div class="logo">B</div>
+<h1>Get started with Bingot</h1>
+<p class="muted">
+Create your own database, organize your collections
+and manage your documents.
+</p>
+<button class="primary" onclick="showScreen('setup')">
+Get started
+</button>
+</div>
+</section>
+
+<!-- DATABASE SETUP -->
+<section id="setup" class="screen center">
+<div class="container">
+
+<div class="topbar">
+<div class="brand"><div class="mini-logo">B</div>Bingot</div>
+<span class="status">LOCAL DATABASE</span>
+</div>
+
+<div class="panel">
+<h2>Your Database name</h2>
+<p class="description">Configure your local database.</p>
+
+<div class="field">
+<label>Database Name</label>
+<input id="dbName" placeholder="My Database">
+</div>
+
+<div class="field">
+<label>Database ID</label>
+<input id="dbID" placeholder="database-12345">
+</div>
+
+<button class="primary" id="createDB" onclick="createDatabase()">
+Create Database
+</button>
+
+<div class="quota">
+<div class="quota-head">
+<span>Database storage limit</span>
+<span>7 GB MAX</span>
+</div>
+<div class="progress"><div id="setupBar"></div></div>
+<p class="note">
+Database can save max 7GB. Actual available storage depends on your browser and device.
+</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- LOADING -->
+<section id="loading" class="screen center">
+<div class="loading">
+<div class="spinner"></div>
+<h2>Creating your database...</h2>
+<p id="loadingText">Initializing IndexedDB...</p>
+</div>
+</section>
+
+<!-- DATABASE DASHBOARD -->
+<section id="dashboard" class="screen">
+<div class="workspace">
+
+<div class="topbar">
+<div class="brand"><div class="mini-logo">B</div>Bingot</div>
+<span class="status">● Database ready</span>
+</div>
+
+<div class="database-card">
+<small>Your Database:</small>
+<h2 id="displayDBName"></h2>
+<div class="database-id" id="displayDBID"></div>
+</div>
+
+<div class="section-title">
+<h3>Your collections</h3>
+<button class="primary" style="width:auto;margin:0" onclick="openCollectionSetup()">
++ Start collection
+</button>
+</div>
+
+<div id="collectionList" class="list"></div>
+
+<div class="quota storage-card">
+<div class="quota-head">
+<span>Storage used</span>
+<span id="storageText">0 MB / 7 GB</span>
+</div>
+<div class="progress"><div id="storageBar"></div></div>
+<p class="note" id="storageNote">Local browser storage.</p>
+</div>
+
+</div>
+</section>
+
+<!-- CREATE COLLECTION -->
+<section id="collectionSetup" class="screen center">
+<div class="container">
+<button class="back" onclick="showScreen('dashboard')">← Your Database</button>
+
+<div class="panel">
+<h2>Start collection</h2>
+<p class="description">Create a collection in your database.</p>
+
+<div class="field">
+<label>Collection Name</label>
+<input id="colName" placeholder="Users">
+</div>
+
+<div class="field">
+<label>Collection ID</label>
+<input id="colID" placeholder="users-12345">
+</div>
+
+<button class="primary" onclick="createCollection()">Create collection</button>
+</div>
+</div>
+</section>
+
+<!-- COLLECTION PAGE -->
+<section id="collection" class="screen">
+<div class="workspace">
+
+<div class="breadcrumb">
+<button onclick="showScreen('dashboard')">Database</button>
+<span>›</span>
+<span id="breadcrumbCollection"></span>
+</div>
+
+<div class="collection-head">
+<small class="muted">Collection</small>
+<h2 id="displayColName"></h2>
+<div class="database-id" id="displayColID"></div>
+</div>
+
+<div class="section-title">
+<h3>Your documents</h3>
+<button class="primary" style="width:auto;margin:0" onclick="openDocumentSetup()">
++ Create Document
+</button>
+</div>
+
+<div id="documentList" class="list"></div>
+</div>
+</section>
+
+<!-- CREATE DOCUMENT -->
+<section id="documentSetup" class="screen">
+<div class="container">
+
+<button class="back" onclick="openCollection(currentCollection.id)">
+← Back to collection
+</button>
+
+<div class="panel">
+<h2>Name your document</h2>
+<p class="description">Create a document inside this collection.</p>
+
+<div class="field">
+<label>Document Name</label>
+<input id="docName" placeholder="yourdocument-ID">
+</div>
+
+<p class="note">You should name it like yourdocument-ID</p>
+
+<div style="margin-top:25px">
+<div class="section-title">
+<h3>Fields</h3>
+<span class="muted" id="fieldCounter">0 fields</span>
+</div>
+
+<div class="editor-labels">
+<span>Field</span>
+<span>Type</span>
+<span>Value</span>
+<span></span>
+</div>
+
+<div class="field-editor" id="fieldsContainer"></div>
+
+<button class="add-field" onclick="addField()">
++ Add field
+</button>
+</div>
+
+<button class="primary" onclick="saveDocument()">Save doc</button>
+</div>
+</div>
+</section>
+
+<!-- DOCUMENT DETAILS -->
+<section id="documentPage" class="screen">
+<div class="workspace">
+
+<div class="breadcrumb">
+<button onclick="showScreen('dashboard')">Database</button>
+<span>›</span>
+<button onclick="openCollection(currentCollection.id)">Collection</button>
+<span>›</span>
+<span id="breadcrumbDocument"></span>
+</div>
+
+<div class="document-head">
+<small class="muted">Document</small>
+<h2 id="displayDocName"></h2>
+<div class="database-id" id="displayDocID"></div>
+</div>
+
+<div class="document-info">
+<strong>Fields</strong>
+<p id="documentFieldCount">0 fields</p>
+</div>
+
+<div class="section-title">
+<h3>Fields</h3>
+</div>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody id="documentFields"></tbody>
+</table>
+</div>
+
+<div class="header-actions" style="margin-top:20px">
+<button class="secondary" onclick="editDocument()">Edit document</button>
+<button class="danger" onclick="deleteDocument()">Delete document</button>
+</div>
+
+</div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================
+   BINGOT DATABASE ENGINE
+   IndexedDB - Separated Object Stores
+========================================= */
+
+const DB_NAME = "BingotEngine";
+const DB_VERSION = 2;
+const MAX_STORAGE = 7 * 1024 * 1024 * 1024;
+
+let db;
+let currentDatabase = null;
+let currentCollection = null;
+let currentDocument = null;
+let editingDocument = false;
+
+const $ = id => document.getElementById(id);
+
+function uid(prefix){
+return prefix + "-" + crypto.randomUUID();
+}
+
+/* =========================================
+   INDEXED DB STRUCTURE
+========================================= */
+
+function initDB(){
+return new Promise((resolve,reject)=>{
+const request = indexedDB.open(DB_NAME,DB_VERSION);
+
+request.onupgradeneeded = event=>{
+const database = event.target.result;
+
+if(!database.objectStoreNames.contains("databases")){
+database.createObjectStore("databases",{keyPath:"id"});
+}
+
+if(!database.objectStoreNames.contains("collections")){
+const store=database.createObjectStore("collections",{keyPath:"id"});
+store.createIndex("databaseId","databaseId",{unique:false});
+store.createIndex("collectionID","collectionID",{unique:false});
+}
+
+if(!database.objectStoreNames.contains("documents")){
+const store=database.createObjectStore("documents",{keyPath:"id"});
+store.createIndex("collectionId","collectionId",{unique:false});
+store.createIndex("documentID","documentID",{unique:false});
+}
+
+if(!database.objectStoreNames.contains("fields")){
+const store=database.createObjectStore("fields",{keyPath:"id"});
+store.createIndex("documentId","documentId",{unique:false});
+}
+};
+
+request.onsuccess=()=>{
+db=request.result;
+resolve(db);
+};
+
+request.onerror=()=>reject(request.error);
+request.onblocked=()=>reject(new Error("Close other Bingot tabs and reload."));
+});
+}
+
+function requestPromise(request){
+return new Promise((resolve,reject)=>{
+request.onsuccess=()=>resolve(request.result);
+request.onerror=()=>reject(request.error);
+});
+}
+
+function get(store,key){
+return requestPromise(db.transaction(store,"readonly").objectStore(store).get(key));
+}
+
+function getAll(store){
+return requestPromise(db.transaction(store,"readonly").objectStore(store).getAll());
+}
+
+function getByIndex(store,index,value){
+return requestPromise(
+db.transaction(store,"readonly").objectStore(store).index(index).getAll(value)
+);
+}
+
+function put(store,data){
+return requestPromise(
+db.transaction(store,"readwrite").objectStore(store).put(data)
+);
+}
+
+function remove(store,key){
+return requestPromise(
+db.transaction(store,"readwrite").objectStore(store).delete(key)
+);
+}
+
+function removeByIndex(store,index,value){
+return new Promise((resolve,reject)=>{
+const tx=db.transaction(store,"readwrite");
+const objectStore=tx.objectStore(store);
+const request=objectStore.index(index).openCursor(value);
+
+request.onsuccess=()=>{
+const cursor=request.result;
+if(cursor){
+cursor.delete();
+cursor.continue();
+}
+};
+
+tx.oncomplete=()=>resolve();
+tx.onerror=()=>reject(tx.error);
+tx.onabort=()=>reject(tx.error);
+});
+}
+
+/* =========================================
+   UI
+========================================= */
+
+function showScreen(id){
+document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+$(id).classList.add("active");
+window.scrollTo(0,0);
+}
+
+let toastTimer;
+
+function notify(message){
+const el=$("toast");
+el.textContent=message;
+el.classList.add("show");
+clearTimeout(toastTimer);
+toastTimer=setTimeout(()=>el.classList.remove("show"),3000);
+}
+
+function formatSize(bytes){
+if(bytes<1024*1024)return (bytes/1024).toFixed(1)+" KB";
+if(bytes<1024*1024*1024)return (bytes/1024/1024).toFixed(2)+" MB";
+return (bytes/1024/1024/1024).toFixed(2)+" GB";
+}
+
+async function updateStorage(){
+try{
+const estimate=await navigator.storage.estimate();
+const used=estimate.usage||0;
+const percent=Math.min(100,used/MAX_STORAGE*100);
+
+$("storageBar").style.width=percent+"%";
+$("storageText").textContent=formatSize(used)+" / 7 GB";
+
+$("storageNote").textContent=
+"Browser quota: "+formatSize(estimate.quota||0)+
+". Bingot logical limit: 7 GB.";
+}catch(e){}
+}
+
+async function ensureStorage(record){
+const estimate=await navigator.storage.estimate();
+const size=new Blob([JSON.stringify(record)]).size;
+
+if((estimate.usage||0)+size>MAX_STORAGE){
+throw new Error("Bingot 7GB storage limit reached.");
+}
+
+if(estimate.quota && (estimate.usage||0)+size>estimate.quota){
+throw new Error("Not enough browser storage available.");
+}
+}
+
+function makeItem(name,meta){
+const item=document.createElement("div");
+item.className="item";
+
+const content=document.createElement("div");
+const title=document.createElement("div");
+title.className="item-name";
+title.textContent=name;
+
+const subtitle=document.createElement("div");
+subtitle.className="item-meta";
+subtitle.textContent=meta;
+
+content.append(title,subtitle);
+
+const arrow=document.createElement("span");
+arrow.className="arrow";
+arrow.textContent="›";
+
+item.append(content,arrow);
+return item;
+}
+
+/* =========================================
+   DATABASE
+========================================= */
+
+async function createDatabase(){
+const name=$("dbName").value.trim();
+const databaseID=$("dbID").value.trim();
+
+if(!name||!databaseID){
+notify("Enter Database Name and Database ID.");
+return;
+}
+
+const button=$("createDB");
+button.disabled=true;
+
+try{
+const existing=await get("databases","main");
+
+if(existing){
+notify("Database already exists.");
+button.disabled=false;
+return;
+}
+
+showScreen("loading");
+
+if(navigator.storage?.persist){
+try{await navigator.storage.persist()}catch(e){}
+}
+
+const messages=[
+"Initializing IndexedDB...",
+"Preparing storage...",
+"Creating database structure...",
+"Configuring database...",
+"Finalizing..."
+];
+
+for(let i=0;i<10;i++){
+$("loadingText").textContent=messages[Math.floor(i/2)];
+await new Promise(resolve=>setTimeout(resolve,1000));
+}
+
+const record={
+id:"main",
+name,
+databaseID,
+createdAt:Date.now()
+};
+
+await ensureStorage(record);
+await put("databases",record);
+
+currentDatabase=record;
+
+await loadDashboard();
+showScreen("dashboard");
+notify("Database created successfully!");
+
+}catch(error){
+showScreen("setup");
+notify(error.message||"Database creation failed.");
+}finally{
+button.disabled=false;
+}
+}
+
+async function loadDashboard(){
+currentDatabase=await get("databases","main");
+
+if(!currentDatabase){
+showScreen("welcome");
+return;
+}
+
+$("displayDBName").textContent=currentDatabase.name;
+$("displayDBID").textContent="Database ID: "+currentDatabase.databaseID;
+
+const collections=await getByIndex("collections","databaseId","main");
+const list=$("collectionList");
+list.innerHTML="";
+
+if(!collections.length){
+const empty=document.createElement("div");
+empty.className="empty";
+empty.textContent="No collections yet. Start your first collection.";
+list.appendChild(empty);
+}
+
+for(const col of collections){
+const docs=await getByIndex("documents","collectionId",col.id);
+
+const item=makeItem(
+col.name,
+"Collection ID: "+col.collectionID+" · "+docs.length+" documents"
+);
+
+item.onclick=()=>openCollection(col.id);
+list.appendChild(item);
+}
+
+await updateStorage();
+}
+
+/* =========================================
+   COLLECTIONS
+========================================= */
+
+function openCollectionSetup(){
+$("colName").value="";
+$("colID").value="";
+showScreen("collectionSetup");
+}
+
+async function createCollection(){
+const name=$("colName").value.trim();
+const collectionID=$("colID").value.trim();
+
+if(!name||!collectionID){
+notify("Enter Collection Name and Collection ID.");
+return;
+}
+
+const collections=await getByIndex("collections","databaseId","main");
+
+if(collections.some(c=>c.collectionID===collectionID)){
+notify("Collection ID already exists.");
+return;
+}
+
+const record={
+id:uid("col"),
+databaseId:"main",
+name,
+collectionID,
+createdAt:Date.now()
+};
+
+try{
+await ensureStorage(record);
+await put("collections",record);
+
+notify("Your collection has been saved in your documents list.");
+
+await loadDashboard();
+showScreen("dashboard");
+
+}catch(error){
+notify(error.message);
+}
+}
+
+async function openCollection(id){
+const col=await get("collections",id);
+
+if(!col){
+notify("Collection not found.");
+return;
+}
+
+currentCollection=col;
+
+$("displayColName").textContent=col.name;
+$("displayColID").textContent="Collection ID: "+col.collectionID;
+$("breadcrumbCollection").textContent=col.name;
+
+const docs=await getByIndex("documents","collectionId",id);
+const list=$("documentList");
+list.innerHTML="";
+
+if(!docs.length){
+const empty=document.createElement("div");
+empty.className="empty";
+empty.textContent="No documents yet. Create your first document.";
+list.appendChild(empty);
+}
+
+for(const doc of docs){
+const fields=await getByIndex("fields","documentId",doc.id);
+
+const item=makeItem(
+doc.name,
+"Document ID: "+doc.documentID+" · "+fields.length+" fields"
+);
+
+item.onclick=()=>openDocument(doc.id);
+list.appendChild(item);
+}
+
+showScreen("collection");
+}
+
+/* =========================================
+   DOCUMENT CREATION
+========================================= */
+
+function openDocumentSetup(){
+editingDocument=false;
+currentDocument=null;
+
+$("docName").value="";
+$("docName").disabled=false;
+$("fieldsContainer").innerHTML="";
+
+addField();
+showScreen("documentSetup");
+}
+
+function addField(data=null){
+const row=document.createElement("div");
+row.className="editor-row";
+
+const key=document.createElement("input");
+key.className="key";
+key.placeholder="Field name";
+key.value=data?.name||"";
+
+const type=document.createElement("select");
+type.className="type";
+
+[
+["string","String"],
+["number","Number"],
+["boolean","Boolean"],
+["null","Null"],
+["array","Array"],
+["map","Map"]
+].forEach(([value,label])=>{
+const option=document.createElement("option");
+option.value=value;
+option.textContent=label;
+type.appendChild(option);
+});
+
+type.value=data?.type||"string";
+
+const value=document.createElement("input");
+value.className="value";
+value.placeholder="Value";
+value.value=data?serializeValue(data.value):"";
+
+type.onchange=()=>updateValuePlaceholder(type,value);
+
+const removeBtn=document.createElement("button");
+removeBtn.className="remove-field";
+removeBtn.textContent="×";
+removeBtn.onclick=()=>{
+row.remove();
+updateFieldCounter();
+};
+
+row.append(key,type,value,removeBtn);
+$("fieldsContainer").appendChild(row);
+
+updateValuePlaceholder(type,value);
+updateFieldCounter();
+}
+
+function serializeValue(value){
+if(value===null)return "null";
+if(typeof value==="object")return JSON.stringify(value);
+return String(value);
+}
+
+function updateValuePlaceholder(type,input){
+const hints={
+string:"Text value",
+number:"123",
+boolean:"true / false",
+null:"null",
+array:'["one","two"]',
+map:'{"key":"value"}'
+};
+
+input.placeholder=hints[type.value]||"Value";
+
+if(type.value==="null")input.value="null";
+}
+
+function updateFieldCounter(){
+const count=document.querySelectorAll(".editor-row").length;
+$("fieldCounter").textContent=count+" fields";
+}
+
+function parseValue(type,value){
+switch(type){
+
+case "string":
+return value;
+
+case "number":
+if(value.trim()===""||!Number.isFinite(Number(value)))
+throw new Error("Invalid number.");
+return Number(value);
+
+case "boolean":
+if(value==="true")return true;
+if(value==="false")return false;
+throw new Error("Boolean value must be true or false.");
+
+case "null":
+return null;
+
+case "array":{
+const parsed=JSON.parse(value);
+if(!Array.isArray(parsed))
+throw new Error("Value must be an Array.");
+return parsed;
+}
+
+case "map":{
+const parsed=JSON.parse(value);
+if(!parsed||typeof parsed!=="object"||Array.isArray(parsed))
+throw new Error("Value must be a Map/Object.");
+return parsed;
+}
+
+default:
+throw new Error("Unknown field type.");
+}
+}
+
+async function saveDocument(){
+const name=$("docName").value.trim();
+
+if(!name){
+notify("Please name your document.");
+return;
+}
+
+const rows=[...document.querySelectorAll(".editor-row")];
+const values=[];
+const seen=new Set();
+
+try{
+
+for(const row of rows){
+const key=row.querySelector(".key").value.trim();
+const type=row.querySelector(".type").value;
+const raw=row.querySelector(".value").value;
+
+if(!key)throw new Error("Every field needs a name.");
+if(seen.has(key))throw new Error("Duplicate field: "+key);
+
+seen.add(key);
+
+values.push({
+name:key,
+type,
+value:parseValue(type,raw)
+});
+}
+
+if(editingDocument){
+await updateExistingDocument(name,values);
+return;
+}
+
+const docs=await getByIndex(
+"documents","collectionId",currentCollection.id
+);
+
+if(docs.some(d=>d.documentID===name)){
+throw new Error("Document already exists in this collection.");
+}
+
+const doc={
+id:uid("doc"),
+collectionId:currentCollection.id,
+name,
+documentID:name,
+createdAt:Date.now(),
+updatedAt:Date.now()
+};
+
+const estimatedSize=new Blob([JSON.stringify({doc,values})]).size;
+const estimate=await navigator.storage.estimate();
+
+if((estimate.usage||0)+estimatedSize>MAX_STORAGE)
+throw new Error("Bingot 7GB limit reached.");
+
+if(estimate.quota && (estimate.usage||0)+estimatedSize>estimate.quota)
+throw new Error("Not enough browser storage available.");
+
+await put("documents",doc);
+
+for(const field of values){
+await put("fields",{
+id:uid("field"),
+documentId:doc.id,
+name:field.name,
+type:field.type,
+value:field.value,
+createdAt:Date.now()
+});
+}
+
+notify("Document saved successfully!");
+await openCollection(currentCollection.id);
+
+}catch(error){
+notify(error.message||"Could not save document.");
+}
+}
+
+/* =========================================
+   DOCUMENT DETAILS
+========================================= */
+
+async function openDocument(id){
+const doc=await get("documents",id);
+
+if(!doc){
+notify("Document not found.");
+return;
+}
+
+currentDocument=doc;
+
+$("displayDocName").textContent=doc.name;
+$("displayDocID").textContent="Document ID: "+doc.documentID;
+$("breadcrumbDocument").textContent=doc.name;
+
+const fields=await getByIndex("fields","documentId",id);
+
+$("documentFieldCount").textContent=fields.length+" fields";
+
+const tbody=$("documentFields");
+tbody.innerHTML="";
+
+if(!fields.length){
+const tr=document.createElement("tr");
+const td=document.createElement("td");
+
+td.colSpan=3;
+td.textContent="No fields in this document.";
+td.style.color="var(--muted)";
+
+tr.appendChild(td);
+tbody.appendChild(tr);
+}
+
+for(const field of fields){
+const tr=document.createElement("tr");
+
+const name=document.createElement("td");
+name.textContent=field.name;
+
+const type=document.createElement("td");
+const badge=document.createElement("span");
+
+badge.className="type-badge";
+badge.textContent=field.type;
+type.appendChild(badge);
+
+const value=document.createElement("td");
+const code=document.createElement("code");
+
+code.textContent=serializeValue(field.value);
+value.appendChild(code);
+
+tr.append(name,type,value);
+tbody.appendChild(tr);
+}
+
+showScreen("documentPage");
+}
+
+/* =========================================
+   EDIT DOCUMENT
+========================================= */
+
+async function editDocument(){
+const doc=currentDocument;
+if(!doc)return;
+
+const fields=await getByIndex("fields","documentId",doc.id);
+
+editingDocument=true;
+
+$("docName").value=doc.name;
+$("docName").disabled=true;
+$("fieldsContainer").innerHTML="";
+
+for(const field of fields){
+addField(field);
+}
+
+if(!fields.length)addField();
+
+$("fieldCounter").textContent=fields.length+" fields";
+showScreen("documentSetup");
+}
+
+async function updateExistingDocument(name,values){
+const doc=currentDocument;
+
+const fields=await getByIndex("fields","documentId",doc.id);
+
+const estimate=await navigator.storage.estimate();
+const oldSize=new Blob([JSON.stringify(fields)]).size;
+const newSize=new Blob([JSON.stringify(values)]).size;
+
+if((estimate.usage||0)-oldSize+newSize>MAX_STORAGE){
+throw new Error("Bingot storage limit reached.");
+}
+
+await removeByIndex("fields","documentId",doc.id);
+
+for(const field of values){
+await put("fields",{
+id:uid("field"),
+documentId:doc.id,
+name:field.name,
+type:field.type,
+value:field.value,
+createdAt:Date.now()
+});
+}
+
+doc.updatedAt=Date.now();
+await put("documents",doc);
+
+editingDocument=false;
+
+notify("Document updated successfully!");
+await openDocument(doc.id);
+}
+
+/* =========================================
+   DELETE DOCUMENT
+========================================= */
+
+async function deleteDocument(){
+if(!currentDocument)return;
+
+if(!confirm("Delete this document and all its fields?"))return;
+
+const id=currentDocument.id;
+
+await removeByIndex("fields","documentId",id);
+await remove("documents",id);
+
+notify("Document deleted successfully.");
+await openCollection(currentCollection.id);
+}
+
+/* =========================================
+   START APPLICATION
+========================================= */
+
+async function start(){
+try{
+await initDB();
+
+const database=await get("databases","main");
+
+if(database){
+currentDatabase=database;
+await loadDashboard();
+showScreen("dashboard");
+}else{
+showScreen("welcome");
+}
+
+}catch(error){
+document.body.innerHTML=`
+<div style="padding:30px;color:white;background:#07111f;min-height:100vh">
+<h2>Bingot storage error</h2>
+<p style="margin-top:15px;color:#aaa">
+${escapeHTML(error.message)}
+</p>
+</div>`;
+}
+}
+
+function escapeHTML(value){
+return String(value).replace(/[&<>"']/g,c=>({
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#39;"
+}[c]));
+}
+
+start();
+</script>
+
+</body>
+</html>
