@@ -77,6 +77,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <button data-page="settings">⚙ &nbsp; Settings</button>
   <button data-page="authentication">◈ &nbsp; Authentication</button>
   <button data-page="users">♙ &nbsp; Users</button>
+  <button id="bingotBtn">B &nbsp; Bingot</button>
   <div class="section">Your projects</div>
   <div id="projectList"></div>
  </aside>
@@ -176,6 +177,10 @@ function showPage(page){
 document.querySelectorAll(".sidebar [data-page]").forEach(button=>{
  button.onclick=()=>{showPage(button.dataset.page);closeMenu()};
 });
+
+document.getElementById("bingotBtn").onclick=()=>{
+ location.href="bingot.html";
+};
 
 function renderOverview(){
  content.innerHTML=`
